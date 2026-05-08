@@ -41,9 +41,16 @@ function Trackball() {
     const dy = e.movementY
     if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) return
 
-    // Camera's screen-space axes in world coordinates — always well-defined
-    const camRight = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion).normalize()
-    const camUp    = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize()
+    // Compute stable axes from camera position (not quaternion).
+    // camera.quaternion breaks near the poles; this never does.
+    const worldUp = new THREE.Vector3(0, 1, 0)
+    const viewDir = camera.position.clone().normalize().multiplyScalar(-1)
+
+    const camRight = new THREE.Vector3().crossVectors(viewDir, worldUp)
+    if (camRight.length() < 0.001) camRight.set(1, 0, 0) // camera is directly above/below
+    camRight.normalize()
+
+    const camUp = new THREE.Vector3().crossVectors(camRight, viewDir).normalize()
 
     // Vertical mouse → tilt: drag up = object top comes toward you
     const qV = new THREE.Quaternion().setFromAxisAngle(camRight, dy * SENSITIVITY)
@@ -89,9 +96,14 @@ function Trackball() {
     camera.position.lerp(dir.multiplyScalar(dist.current), 0.15)
     camera.lookAt(0, 0, 0)
 
-    // Auto-rotate: spin around camera's up axis
+    // Auto-rotate: spin around camera's stable up axis
     if (autoRotate && !dragging.current) {
-      const camUp = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion).normalize()
+      const worldUp = new THREE.Vector3(0, 1, 0)
+      const viewDir = camera.position.clone().normalize().multiplyScalar(-1)
+      const camRight = new THREE.Vector3().crossVectors(viewDir, worldUp)
+      if (camRight.length() < 0.001) camRight.set(1, 0, 0)
+      camRight.normalize()
+      const camUp = new THREE.Vector3().crossVectors(camRight, viewDir).normalize()
       const q = new THREE.Quaternion().setFromAxisAngle(camUp, 0.003)
       camera.position.applyQuaternion(q)
       camera.lookAt(0, 0, 0)
