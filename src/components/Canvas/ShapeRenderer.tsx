@@ -39,7 +39,7 @@ function triangleVerts(a: number, b: number, c: number): [number, number][] {
 
 function getFaceLabels(id: string, d: Record<string, number>): LabelDef[] {
   const labels: LabelDef[] = []
-  const off = 1.6
+  const off = 0.35
   switch (id) {
     case 'cube': {
       const s = d.side ?? 3
@@ -79,54 +79,54 @@ function getFaceLabels(id: string, d: Record<string, number>): LabelDef[] {
     }
     case 'sphere': {
       const r = d.radius ?? 2
-      labels.push(faceLabel('Surface', 4 * Math.PI * r * r, [0, r + 1.0, 0]))
+      labels.push(faceLabel('Surface', 4 * Math.PI * r * r, [0, r + 0.35, 0]))
       break
     }
     case 'rectangle': {
       const w = d.width ?? 5; const h = d.height ?? 3
-      labels.push(faceLabel('Area', w * h, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', w * h, [0, 0, 0.25]))
       break
     }
     case 'square': {
       const s = d.side ?? 4
-      labels.push(faceLabel('Area', s * s, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', s * s, [0, 0, 0.25]))
       break
     }
     case 'parallelogram': {
       const b = d.base ?? 5; const h = d.height ?? 3
-      labels.push(faceLabel('Area', b * h, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', b * h, [0, 0, 0.25]))
       break
     }
     case 'trapezoid': {
       const b1 = d.base1 ?? 6; const b2 = d.base2 ?? 4; const h = d.height ?? 3
-      labels.push(faceLabel('Area', ((b1 + b2) / 2) * h, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', ((b1 + b2) / 2) * h, [0, 0, 0.25]))
       break
     }
     case 'triangle': {
       const a = d.base ?? 5; const bd = d.sideB ?? 4; const c = d.sideC ?? 4
       const s = (a + bd + c) / 2
       const area = Math.sqrt(Math.max(0, s * (s - a) * (s - bd) * (s - c)))
-      labels.push(faceLabel('Area', area, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', area, [0, 0, 0.25]))
       break
     }
     case 'circle': {
       const r = d.radius ?? 2.5
-      labels.push(faceLabel('Area', Math.PI * r * r, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', Math.PI * r * r, [0, 0, 0.25]))
       break
     }
     case 'oval': {
       const rx = d.radiusX ?? 3; const ry = d.radiusY ?? 2
-      labels.push(faceLabel('Area', Math.PI * rx * ry, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', Math.PI * rx * ry, [0, 0, 0.25]))
       break
     }
     case 'rhombus': {
       const d1 = d.diag1 ?? 6; const d2 = d.diag2 ?? 4
-      labels.push(faceLabel('Area', (d1 * d2) / 2, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', (d1 * d2) / 2, [0, 0, 0.25]))
       break
     }
     case 'kite': {
       const d1 = d.diag1 ?? 6; const d2 = d.diag2 ?? 4
-      labels.push(faceLabel('Area', (d1 * d2) / 2, [0, 0, 0.8]))
+      labels.push(faceLabel('Area', (d1 * d2) / 2, [0, 0, 0.25]))
       break
     }
   }
@@ -139,7 +139,7 @@ function dimLabel(name: string, val: number, pos: [number, number, number], font
 
 function getEdgeLabels(id: string, d: Record<string, number>): LabelDef[] {
   const labels: LabelDef[] = []
-  const off = 1.8
+  const off = 0.45
   switch (id) {
     case 'cube': {
       const s = d.side ?? 3
@@ -160,8 +160,8 @@ function getEdgeLabels(id: string, d: Record<string, number>): LabelDef[] {
       const verts = triangleVerts(a, b, c)
       labels.push(
         dimLabel('a', a, [0, verts[0][1] - off, dp / 2], 0.30),
-        dimLabel('b', b, [(verts[0][0] + verts[2][0]) / 2 - 0.7, (verts[0][1] + verts[2][1]) / 2, dp / 2], 0.28),
-        dimLabel('c', c, [(verts[1][0] + verts[2][0]) / 2 + 0.7, (verts[1][1] + verts[2][1]) / 2, dp / 2], 0.28),
+        dimLabel('b', b, [(verts[0][0] + verts[2][0]) / 2 - 0.45, (verts[0][1] + verts[2][1]) / 2, dp / 2], 0.28),
+        dimLabel('c', c, [(verts[1][0] + verts[2][0]) / 2 + 0.45, (verts[1][1] + verts[2][1]) / 2, dp / 2], 0.28),
         dimLabel('depth', dp, [verts[1][0] + off, verts[0][1], 0], 0.30),
       )
       break
@@ -221,8 +221,8 @@ function getEdgeLabels(id: string, d: Record<string, number>): LabelDef[] {
     case 'parallelogram': {
       const b = d.base ?? 5; const s = d.side ?? 3.5
       labels.push(
-        dimLabel('base', b, [0, -0.55, 0]),
-        dimLabel('side', s, [b / 2 + 0.5, 0.3, 0], 0.28),
+        dimLabel('base', b, [0, -0.45, 0]),
+        dimLabel('side', s, [b / 2 + 0.45, 0.45, 0], 0.28),
       )
       break
     }
@@ -241,8 +241,8 @@ function getEdgeLabels(id: string, d: Record<string, number>): LabelDef[] {
       // label each side near its midpoint
       labels.push(
         dimLabel('a', a, [0, verts[0][1] - 0.25, 0], 0.30),
-        dimLabel('b', b, [(verts[0][0] + verts[2][0]) / 2 - 0.7, (verts[0][1] + verts[2][1]) / 2, 0], 0.28),
-        dimLabel('c', c, [(verts[1][0] + verts[2][0]) / 2 + 0.7, (verts[1][1] + verts[2][1]) / 2, 0], 0.28),
+        dimLabel('b', b, [(verts[0][0] + verts[2][0]) / 2 - 0.45, (verts[0][1] + verts[2][1]) / 2, 0], 0.28),
+        dimLabel('c', c, [(verts[1][0] + verts[2][0]) / 2 + 0.45, (verts[1][1] + verts[2][1]) / 2, 0], 0.28),
       )
       break
     }
