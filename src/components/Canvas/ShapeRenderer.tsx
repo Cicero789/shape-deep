@@ -39,7 +39,7 @@ function triangleVerts(a: number, b: number, c: number): [number, number][] {
 
 function getFaceLabels(id: string, d: Record<string, number>): LabelDef[] {
   const labels: LabelDef[] = []
-  const off = 0.35
+  const off = 0.5
   switch (id) {
     case 'cube': {
       const s = d.side ?? 3
@@ -139,7 +139,7 @@ function dimLabel(name: string, val: number, pos: [number, number, number], font
 
 function getEdgeLabels(id: string, d: Record<string, number>): LabelDef[] {
   const labels: LabelDef[] = []
-  const off = 0.45
+  const off = 0.6
   switch (id) {
     case 'cube': {
       const s = d.side ?? 3
@@ -689,24 +689,24 @@ function SingleShape({
         <>
           {edgeLs.map((l, i) => (
             <Text key={`e-${i}`} position={l.pos} fontSize={l.fontSize ?? 0.36} color={l.color}
-              anchorX="center" anchorY="middle" outlineWidth={0.06} outlineColor="#FFFDF7"
-              renderOrder={1}
+              anchorX="center" anchorY="middle" outlineWidth={0.1} outlineColor="#FFFDF7"
+              renderOrder={999}
               material-depthTest={false}>
               {l.text}
             </Text>
           ))}
           {faceLs.map((l, i) => (
             <Text key={`f-${i}`} position={l.pos} fontSize={l.fontSize ?? 0.32} color={l.color}
-              anchorX="center" anchorY="middle" outlineWidth={0.06} outlineColor="#FFFDF7"
-              renderOrder={1}
+              anchorX="center" anchorY="middle" outlineWidth={0.1} outlineColor="#FFFDF7"
+              renderOrder={999}
               material-depthTest={false}>
               {l.text}
             </Text>
           ))}
           {volLs.map((l, i) => (
             <Text key={`v-${i}`} position={l.pos} fontSize={l.fontSize ?? 0.36} color={l.color}
-              anchorX="center" anchorY="middle" outlineWidth={0.06} outlineColor="#FFFDF7"
-              renderOrder={1}
+              anchorX="center" anchorY="middle" outlineWidth={0.1} outlineColor="#FFFDF7"
+              renderOrder={999}
               material-depthTest={false}>
               {l.text}
             </Text>
