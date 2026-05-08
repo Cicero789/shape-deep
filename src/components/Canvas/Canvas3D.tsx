@@ -9,7 +9,6 @@ import { useShapeStore } from '../../store/useShapeStore'
 
 const SENSITIVITY = 0.005
 const ZOOM_SPEED = 0.012
-const PHI_EPSILON = 0.05
 
 function Trackball() {
   const camera = useThree((s) => s.camera)
@@ -17,12 +16,18 @@ function Trackball() {
   const autoRotate = useShapeStore((s) => s.autoRotate)
 
   const dragging = useRef(false)
+  // Cumulative orbit quaternion — tracks total rotation without pole singularities
+  const orbitQuat = useRef(new THREE.Quaternion())
   const dist = useRef(12)
   const targetDist = useRef(12)
 
   useEffect(() => {
     camera.position.set(0, 5, dist.current)
     camera.lookAt(0, 0, 0)
+    orbitQuat.current.setFromUnitVectors(
+      new THREE.Vector3(0, 0, 1),
+      camera.position.clone().normalize(),
+    )
     gl.domElement.style.cursor = 'grab'
   }, [camera, gl])
 
@@ -42,17 +47,25 @@ function Trackball() {
     const dy = e.movementY
     if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) return
 
-    // Spherical orbit: dx drives azimuth, dy drives polar angle.
-    // Clamping phi prevents the y-axis singularity where axis-angle
-    // rotation produced near-zero pitch per pixel.
-    const sph = new THREE.Spherical().setFromVector3(camera.position)
-    sph.theta += dx * SENSITIVITY
-    sph.phi = THREE.MathUtils.clamp(
-      sph.phi + dy * SENSITIVITY,
-      PHI_EPSILON,
-      Math.PI - PHI_EPSILON,
-    )
-    camera.position.setFromSpherical(sph)
+    // Screen-space axes in world space — derived from the orbit quaternion,
+    // NOT camera.quaternion. Always stable, no pole singularities.
+    const screenRight = new THREE.Vector3(1, 0, 0).applyQuaternion(orbitQuat.current).normalize()
+    const viewDir = camera.position.clone().normalize().multiplyScalar(-1)
+    const screenUp = new THREE.Vector3().crossVectors(viewDir, screenRight).normalize()
+
+    // Vertical mouse → tilt around screen horizontal axis
+    const qV = new THREE.Quaternion().setFromAxisAngle(screenRight, dy * SENSITIVITY)
+    // Horizontal mouse → spin around screen vertical axis
+    const qH = new THREE.Quaternion().setFromAxisAngle(screenUp,    dx * SENSITIVITY)
+
+    // Accumulate into orbit quaternion
+    const delta = new THREE.Quaternion().multiplyQuaternions(qV, qH)
+    orbitQuat.current.premultiply(delta)
+    orbitQuat.current.normalize()
+
+    // Apply: rotate base position by orbit quaternion
+    const pos = new THREE.Vector3(0, 0, dist.current).applyQuaternion(orbitQuat.current)
+    camera.position.copy(pos)
     camera.lookAt(0, 0, 0)
   }, [camera])
 
@@ -85,16 +98,18 @@ function Trackball() {
   useFrame(() => {
     // Smooth zoom
     dist.current += (targetDist.current - dist.current) * 0.15
-    const dir = camera.position.clone().normalize()
-    camera.position.lerp(dir.multiplyScalar(dist.current), 0.15)
+    const pos = new THREE.Vector3(0, 0, dist.current).applyQuaternion(orbitQuat.current)
+    camera.position.lerp(pos, 0.2)
     camera.lookAt(0, 0, 0)
 
-    // Auto-rotate around the world up axis
+    // Auto-rotate: spin around screen vertical axis
     if (autoRotate && !dragging.current) {
-      const sph = new THREE.Spherical().setFromVector3(camera.position)
-      sph.theta += 0.003
-      camera.position.setFromSpherical(sph)
-      camera.lookAt(0, 0, 0)
+      const viewDir = camera.position.clone().normalize().multiplyScalar(-1)
+      const screenRight = new THREE.Vector3(1, 0, 0).applyQuaternion(orbitQuat.current).normalize()
+      const screenUp = new THREE.Vector3().crossVectors(viewDir, screenRight).normalize()
+      const q = new THREE.Quaternion().setFromAxisAngle(screenUp, 0.003)
+      orbitQuat.current.premultiply(q)
+      orbitQuat.current.normalize()
     }
   })
 
